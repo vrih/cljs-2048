@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <link rel="icon" href="https://clojurescript.org/images/cljs-logo-icon-32.png">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+
+     body {font-family: "Helvetica"; width:100%}
+     .navbar{background-color: #3322aa; color:white; font-weight:bold}
+ #app{margin:auto;width:100%}
+ #board{margin:auto; width:30%}
+     .cell {width: 90px; height:90px;text-align:center;line-height:90px;}
+     .row {width:80%; margin:auto}
+     .n2 {background-color: #ccc}
+     .n4 {background-color: #aaa}
+     .n8{background-color: #888}
+     .n16{background-color: #666}
+     .n32{background-color: #444}
+     .n64{background-color: #3cd}
+     .n128{background-color: #4d4}
+     .n256{background-color: #cf5}
+     .n512{background-color: #47c}
+     .n1024{background-color: #fcc}
+     .048{background-color: #a0a}
+      </style>
+  </head>
+  <body>
+    <div id="app"> 
+      <h2>Figwheel template</h2>
+      <p>Checkout your developer console.</p>
+    </div>
+    <script src="js/compiled/cljs_2048.js" type="text/javascript"></script>
+    <script>cljs_2048.core.main();</script>
+     
+  </body>
+</html>
