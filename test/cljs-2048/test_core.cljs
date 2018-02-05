@@ -76,15 +76,31 @@
 
 (t/deftest test-victory
   (t/testing "Victory on 2048"
-    (t/is (true? (sut/victory
+    (t/is (true? (sut/victory?
                   [[0 0 0 0]
                    [0 2 0 4]
                    [2048 0 0 0]
                    [0 0 0 0]]))))
   (t/testing "No Victory witout 2048"
-    (t/is (not (true? (sut/victory
+    (t/is (not (true? (sut/victory?
                        [[0 0 0 0]
                         [0 2 0 4]]))))))
+
+
+(t/deftest test-get-empty-spaces
+  (t/testing "Single line"
+    (t/is (= (list '(0 0) '(0 2) '(0 3)) (sut/get-empty-spaces [[0 2 0 0]])))))
+
+(t/deftest test-get-score
+  (t/testing "Merging 2 2s = 2"
+    (t/is (= 2 (sut/get-score [[0 0 0 0]
+                               [0 0 0 0]
+                               [0 0 0 2]
+                               [0 0 0 2]]
+                              [[0 0 0 0]
+                               [0 0 0 0]
+                               [0 0 0 0]
+                               [0 0 0 4]])))))
 
 (t/deftest test-game
   (t/testing "Full play"
@@ -93,6 +109,6 @@
                 [0 1024 0 0]]
                 sut/move-board-right
                 sut/move-board-down
-                sut/victory)))))
+                sut/victory?)))))
 
 (t/run-tests)

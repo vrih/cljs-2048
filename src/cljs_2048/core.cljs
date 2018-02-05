@@ -5,24 +5,36 @@
 (enable-console-print!)
 
 (defn generate-board []
-  [[0 0 2 0]
-   [0 2 0 0]
-   [0 2 2 2]
-   [2 0 0 2]])
+  [[0 0 0 0]
+   [0 0 0 0]
+   [0 0 2 0]
+   [0 0 0 0]])
 
-(defonce app-state (reagent/atom {:board (generate-board) :victory false :defeat false}))
+(defn get-score [old new]
+  (let [a 
+        (frequencies (flatten old))
+        b (frequencies (flatten new))]
+  (reduce +
+          (filter #(> % 0)
+                  (map (fn [x] (/ (* (first x)
+                                    (- (last x)
+                                       (get a (first x) 0)))
+                                 2))
+                       b)))))
+
+(defonce app-state (reagent/atom {:board (generate-board) :score 0 :victory false :defeat false}))
  
-;(println "This text is printed from src/cljs-2048/core.cljs. Go ahead and edit it and see reloading in action.")
-
 ;; define your app data so that it doesn't get over-written on reload
 
 (defn get-empty-spaces [board]
-  (filter #(not (nil? %))
+  (filter some?
           (mapcat identity
                   (map-indexed 
-                   (fn [i x] (map-indexed
-                             (fn [j y] (when (= 0 y) (list i j)))
-                             x))
+                   (fn [i x]
+                     (map-indexed
+                      (fn [j y] (when (= 0 y)
+                                 (list i j)))
+                      x))
                    board))))
 
 (defn add-piece
@@ -30,8 +42,6 @@
   [board]
   (let [spaces (get-empty-spaces board)]
     (assoc-in (vec (map vec board)) (rand-nth spaces) 2)))
-
-
 
 (defn push-right [row]
   (let [tail (filter #(> % 0) row)
@@ -91,65 +101,70 @@
      (= (move-board-left board) board)) true
     :else false))
 
-(defn move [direction board]
-  (.log js/console "move")
-  (let [b 
-        (case direction
-          1 (move-board-right board)
-          2 (move-board-left board)
-          3 (move-board-up board)
-          4 (move-board-down board))]
-    (cond
-      (victory? b) (do (swap! app-state assoc :victory true) b)
-      (defeat? b) (do (swap! app-state assoc :defeat true) b)
-      (not (= b board)) (add-piece b)
-      :else board)))
-
-(defn move-in [direction]
-  (move direction (:board @app-state)))
+(defn move
+  ([direction]
+   (move direction (:board @app-state)))
+  ([direction board]
+   (let [b 
+         (case direction
+           :right (move-board-right board)
+           :left (move-board-left board)
+           :up (move-board-up board)
+           :down (move-board-down board))]
+     (cond
+       (victory? b) (do (swap! app-state assoc :victory true)
+                        (swap! app-state update :score + (get-score board b))
+                        b)
+       (defeat? b) (do (swap! app-state assoc :defeat true)
+                       (swap! app-state update :score + (get-score board b))
+                       b)
+       (not (= b board)) (do
+                           (swap! app-state update :score + (/ (get-score board b) 2 ))
+                           (add-piece b))
+       :else board))))
 
 (defn render-cell [row]
-  (map (fn [x] [:span {:class (str "cell n" x)} x]) row))
+  (map (fn [x] [:span {:class (str "cell n" x)} (if (= x 0) " " x)]) row))
  
 (defn render-board [board] 
   (map (fn [x] [:div {:class "row"}(render-cell x)]) board))
 
 (def codename
-  {37 "LEFT"
-   38 "UP"
-   39 "RIGHT"
-   40 "DOWN"
-   32 "SPACE"})
+  {37 :left
+   38 :up
+   39 :right
+   40 :down
+   32 :space})
 
 (def action
-  {"RIGHT" (partial move 1)
-   "LEFT" (partial move 2)
-   "UP" (partial move 3)
-   "DOWN" (partial move 4)})
+  {:right #(move :right)
+   :left #(move :left)
+   :up #(move :up)
+   :down #(move :down)})
 
 (defn handle-keydown [e]
   (let [b (:board @app-state)]
     (when-let [f (action (codename (.-keyCode e)))]
       (.preventDefault e)
       (.log js/console (f b))
-      (swap! app-state assoc :board (f b)))))
+      (swap! app-state assoc :board (f)))))
 
 
 (defn reset []
-  (swap! app-state assoc :board (generate-board) :victory false :defeat false)
+  (swap! app-state assoc :board (generate-board) :score 0 :victory false :defeat false)
   )
 
 (defn page [state]
   (let [b (:board @state)]
  
     [:div
-     [:nav {:class "navbar navbar-default"} 2048 [:span {:on-click #(reset)} "Reset"]]
+     [:nav {:class "navbar navbar-default"} 2048 [:span (:score @state)][:span {:on-click #(reset)} "Reset"]]
      [:div {:id "board"} 
            (render-board b)]
      (when (:victory @state)
        [:div "Victory"])
      (when (:defeat @state)
-       [:div "Defeat"])]))
+       [:div {:id "defeat"} "Defeat"])]))
   
 (defn on-js-reload []
   (reagent/render [page app-state] (.getElementById js/document "app")))
@@ -174,3 +189,5 @@
 ;(assoc-in [[0 0 2 2][2 2 0 0]] (list 0 1) 2)
 
 ;(add-piece [[0 0 2 2][2 2 0 0]])
+
+ 
