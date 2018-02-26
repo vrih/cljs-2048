@@ -1,10 +1,10 @@
 # cljs-2048
 
-FIXME: Write a one-line description of your library/project.
+An implementation of 2048 in clojurescript/reagent that runs entirely in the browser.
 
 ## Overview
 
-FIXME: Write a paragraph about the library/project and highlight its goals.
+This is a quick thrown together in a weekend version of 2048. It uses Reagent and Figwheel for rapid development.
 
 ## Setup
 
@@ -13,13 +13,7 @@ To get an interactive development environment run:
     lein figwheel
 
 and open your browser at [localhost:3449](http://localhost:3449/).
-This will auto compile and send all changes to the browser without the
-need to reload. After the compilation process is complete, you will
-get a Browser Connected REPL. An easy way to try it is:
-
-    (js/alert "Am I connected?")
-
-and you should see an alert in the browser window.
+This will auto compile and send all changes to the browser.
 
 To clean all compiled files:
 
@@ -32,8 +26,8 @@ To create a production build run:
 And open your browser in `resources/public/index.html`. You will not
 get live reloading, nor a REPL. 
 
-## License
 
-Copyright © 2014 FIXME
+## Running tests
 
-Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.
+    lein doo phantom test
+
