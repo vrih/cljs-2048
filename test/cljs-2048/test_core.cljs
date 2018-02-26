@@ -1,5 +1,6 @@
 (ns cljs-2048.test-core
   (:require [cljs-2048.core :as sut]
+            [clojure.spec.test.alpha :as stest]
             [cljs.test :as t :include-macros true])
   )
 

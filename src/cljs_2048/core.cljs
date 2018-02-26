@@ -1,8 +1,18 @@
 (ns cljs-2048.core
   (:require
+   [clojure.spec.alpha :as s]
+   [clojure.spec.gen.alpha :as gen]
    [reagent.core :as reagent]))
 
-(enable-console-print!)
+;(enable-console-print!)
+
+(s/def ::piece (s/with-gen (s/and int?
+                                  #(> (.indexOf [0 2 4 8 16 32 64 128 256 1024 2048] %) -1))
+                 #(s/gen #{0 2 4 8 16 32 64 128 256 1024 2048})))
+(s/def ::row (s/coll-of ::piece :kind vector? :count 4))
+(s/def ::board (s/and (s/coll-of ::row :kind vector? :count 4)
+                      #(apply = (map count %))))
+(s/def ::score (s/and int? pos?))
 
 (defn generate-board []
   [[0 0 0 0]
@@ -15,15 +25,18 @@
         (frequencies (flatten old))
         b (frequencies (flatten new))]
   (reduce +
-          (filter #(> % 0)
+          (filter pos?
                   (map (fn [x] (/ (* (first x)
                                     (- (last x)
                                        (get a (first x) 0)))
                                  2))
                        b)))))
+(s/fdef get-score
+        :args (s/cat :old ::board :new ::board)
+        :ret ::score)
 
 (defonce app-state (reagent/atom {:board (generate-board) :score 0 :victory false :defeat false}))
- 
+
 ;; define your app data so that it doesn't get over-written on reload
 
 (defn get-empty-spaces [board]
@@ -32,7 +45,7 @@
                   (map-indexed 
                    (fn [i x]
                      (map-indexed
-                      (fn [j y] (when (= 0 y)
+                      (fn [j y] (when (zero? y)
                                  (list i j)))
                       x))
                    board))))
@@ -43,11 +56,21 @@
   (let [spaces (get-empty-spaces board)]
     (assoc-in (vec (map vec board)) (rand-nth spaces) 2)))
 
+(s/fdef add-piece
+        :args (s/cat :board ::board)
+        :ret ::board)
+
 (defn push-right [row]
-  (let [tail (filter #(> % 0) row)
+  (let [tail (filter pos? row)
         shift (- (count row) (count tail))
         padding (map (fn [x] 0) (range 0 shift))]
-    (concat padding tail)))
+    (vec (concat padding tail))))
+
+(s/fdef push-right
+        :args (s/cat :row ::row)
+        :ret ::row
+        :fn #(= (filter zero? (:ret %))
+                (take (count (filter zero? (-> % :args :row))) (:ret %))))
 
 (defn merge-right
   "from the right - merge 2 adjacent cells, setting the outermost one to 0"
@@ -67,7 +90,7 @@
       merge-right
       push-right))
 
-(defn move-board-right [board] (map #(row-move %) board))
+(defn move-board-right [board] (map row-move board))
 
 (defn move-board-left [board]
   (->> board
@@ -93,7 +116,7 @@
 
 (defn defeat? [board]
   (cond
-    (> get-empty-spaces 0) false
+    (pos? get-empty-spaces) false
     (and 
      (= (move-board-up board) board)
      (= (move-board-down board) board)
@@ -118,16 +141,16 @@
        (defeat? b) (do (swap! app-state assoc :defeat true)
                        (swap! app-state update :score + (get-score board b))
                        b)
-       (not (= b board)) (do
-                           (swap! app-state update :score + (/ (get-score board b) 2 ))
-                           (add-piece b))
+       (not= b board) (do
+                        (swap! app-state update :score + (/ (get-score board b) 2 ))
+                        (add-piece b))
        :else board))))
 
-(defn render-cell [row]
-  (map (fn [x] [:span {:class (str "cell n" x)} (if (= x 0) " " x)]) row))
+(defn render-cell [y row]
+  (map-indexed (fn [a x] [:span {:class (str "cell n" x) :key (str "cell" a y)} (if (zero? x) " " x)]) row))
  
 (defn render-board [board] 
-  (map (fn [x] [:div {:class "row"}(render-cell x)]) board))
+  (map-indexed (fn [y x] [:div {:class "row" :key (str "row" y)}(render-cell y x)]) board))
 
 (def codename
   {37 :left
