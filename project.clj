@@ -5,22 +5,22 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   
-  
   :min-lein-version "2.7.1"
 
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.9.946"]
-                 [lein-doo "0.1.7"]
-                 [reagent "0.6.1"]
-                 [org.clojure/core.async  "0.3.443"]]
+                 [org.clojure/clojurescript "1.10.758"]
+                 [reagent "0.10.0"]
+                 [org.clojure/core.async  "1.3.610"]]
 
   :plugins [[lein-figwheel "0.5.14"]
             [lein-doo "0.1.7"]
             [lein-kibit "0.1.5"]
-            [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]]
+            [lein-cljsbuild "1.1.8" :exclusions [[org.clojure/clojure]]]]
 
   :source-paths ["src"]
 
+  :doo {:paths {:karma "node_modules/karma/bin/karma"}}
+  
   :cljsbuild {:builds
               [{:id "dev"
                 :source-paths ["src"]
@@ -43,7 +43,6 @@
                            ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
                            ;; https://github.com/binaryage/cljs-devtools
                            :preloads [devtools.preload]}}
-
 
     {:id           "test"
      :source-paths ["src" "test"]
@@ -102,7 +101,6 @@
              ;; to pipe all the output to the repl
              ;; :server-logfile false
              }
-
 
   ;; Setting up nREPL for Figwheel and ClojureScript dev
   ;; Please see:
